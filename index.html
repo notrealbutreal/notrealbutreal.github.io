@@ -134,10 +134,8 @@
             return result;
         }
 
-        if (localStorage.length === 0) {
-            localStorage.setItem('useAlert', "true");
-            localStorage.setItem('includeImage', "true");
-        }
+        if (localStorage.getItem('useAlert') === null) { localStorage.setItem('useAlert', "true"); }
+        if (localStorage.getItem('includeImage') === null) { localStorage.setItem('includeImage', "true"); }
 
         useAlertCheckbox.checked = JSON.parse(localStorage.getItem('useAlert'));
         includeImageCheckbox.checked = JSON.parse(localStorage.getItem('includeImage'));
@@ -155,7 +153,6 @@
             let selectedOptionValue = select.options[select.selectedIndex].value;
 
             if (selectedOptionValue) { serialNumber.value = selectedOptionValue.replace("**", generateRandomAlphaNumericString(2)); }
-
             if (!(products = await findProductsBySerialNumber(serialNumber.value, useAlertCheckbox.checked))) { return; }
 
             for (let product of products) {
