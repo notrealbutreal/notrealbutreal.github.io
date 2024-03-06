@@ -133,9 +133,14 @@
             }
             return result;
         }
-        
-        useAlertCheckbox.checked = JSON.parse(localStorage.getItem('useAlert')) || true;
-        includeImageCheckbox.checked = JSON.parse(localStorage.getItem('includeImage')) || true;
+
+        if (localStorage.length === 0) {
+            localStorage.setItem('useAlert', "true");
+            localStorage.setItem('includeImage', "true");
+        }
+
+        useAlertCheckbox.checked = JSON.parse(localStorage.getItem('useAlert'));
+        includeImageCheckbox.checked = JSON.parse(localStorage.getItem('includeImage'));
 
         useAlertCheckbox.addEventListener('change', function() { localStorage.setItem('useAlert', this.checked); });
         includeImageCheckbox.addEventListener('change', function() { localStorage.setItem('includeImage', this.checked); });
