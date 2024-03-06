@@ -2,8 +2,14 @@
 <html>
     <head>
         <title>Logitech Serial Number Checker</title>
+        <meta property="og:title" content="Logitech Serial Number Checker" /> <!-- metatags.io -->
+        <meta property="og:description" content="..." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="" />
+        <meta property="og:image" content="fav.ico" />
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="icon" type="image/x-icon" href="fav.ico">
         <style>
             #searchForm {
                 display: flex;
@@ -36,7 +42,17 @@
     </head>
     <body>
         <form method="POST" id="searchForm">
-            <input type="text" id="serialNumber" name="serial_number" placeholder="Enter Serial Number">
+            <select id="selectSerialNumbers" name="select_serial_numbers">
+                <option></option>
+                <option value="2238WD083**8">PRO Racing Wheel</option>
+                <option value="2309LZG04**8">Racing Wheel G923</option>
+                <option value="2345LZG04**8">Racing Wheel G920</option>
+                <option value="2308LZG04**8">Racing Wheel G29</option>
+                <option value="2345LZG02**8">Shifter for G29 and G920</option>
+                <option value="2309MH003**8">Headset G PRO X 2</option>
+            </select>
+
+            <input type="text" id="serialNumber" name="serial_number" placeholder="Enter Serial Number"> <!-- minlength, maxlength -->
             <input type="submit" value="Check">
 
             <input type="checkbox" id="useAlert" name="use_alert" checked>
@@ -48,11 +64,15 @@
         <div id="container"></div>
     </body>
     <script>
-        // TODO: 
-        // maybe add meta tags to embed content for discord, etc.
-        // keep products in the cookies (?) / checkbox to keep or not products in the cookies / button to clear all the producs in the cookies or one by one (?)
+        // TODO:
+        // fix getProductImageSource, "2312MH001H38" this S/N makes the actual method to get the product image useless (gets placeholder instead of actual image of the product)
+        // keep products in the localStorage (?) / checkbox to keep or not products in the localStorage / button to clear all the producs in the localStorage or one by one (?)
         // add custom font correctly
+        // add more S/N to generate (?)
+        // make container const outside of addEventListener (?)
 
+        const useAlertCheckbox = document.getElementById('useAlert');
+        const includeImageCheckbox = document.getElementById('includeImage');
         const pattern = new RegExp('src="([^"]+)"', 'g');
         const daysInTheCurrentYear = getDaysInTheYear(new Date().getFullYear());
         const headers = {
@@ -104,13 +124,32 @@
             }
         }
 
+        function generateRandomAlphaNumericString(length) {
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                let numberOrLetter = Math.floor(Math.random() * 36);
+                result += numberOrLetter < 10 ? `${numberOrLetter}` : String.fromCharCode(numberOrLetter + 55);
+            }
+            return result;
+        }
+
+        useAlertCheckbox.addEventListener('change', function() { localStorage.setItem('useAlert', this.checked); });
+        includeImageCheckbox.addEventListener('change', function() { localStorage.setItem('includeImage', this.checked); });
+
         document.getElementById('searchForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            let image, useAlert = document.getElementById('useAlert').checked, includeImage = document.getElementById('includeImage').checked;
-            let products, serialNumber = document.getElementById('serialNumber').value, container = document.getElementById('container');
+            let useAlert = JSON.parse(localStorage.getItem('useAlert')) || useAlertCheckbox.checked;
+            let includeImage = JSON.parse(localStorage.getItem('includeImage')) || includeImageCheckbox.checked;
+    
+            let products, image, serialNumber = document.getElementById('serialNumber'), container = document.getElementById('container');
 
-            if (!(products = await findProductsBySerialNumber(serialNumber, useAlert))) { return; }
+            let select = document.getElementById('selectSerialNumbers');
+            let selectedOptionValue = select.options[select.selectedIndex].value;
+
+            if (selectedOptionValue) { serialNumber.value = selectedOptionValue.replace("**", generateRandomAlphaNumericString(2)); }
+
+            if (!(products = await findProductsBySerialNumber(serialNumber.value, useAlert))) { return; }
 
             for (let product of products) {
                 let attributes = product["attributes"];
@@ -125,7 +164,7 @@
 
                 let itemHTML = `\
 <div class='item'><div class='text'><pre>
-Serial Number (S/N):         ${serialNumber}
+Serial Number (S/N):         ${serialNumber.value}
 Part Number (P/N):           ${product["part_number"]}
 Model Number (M/N):          ${attributes["model_numbers"]}
 Name:                        ${attributes["name"]}
