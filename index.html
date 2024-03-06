@@ -56,10 +56,10 @@
             <input type="text" id="serialNumber" name="serial_number" placeholder="Enter Serial Number"> <!-- minlength, maxlength -->
             <input type="submit" value="Check">
 
-            <input type="checkbox" id="useAlert" name="use_alert" checked>
+            <input type="checkbox" id="useAlert" name="use_alert"> <!-- checked -->
             <label for="useAlert">Alert if response status is not OK</label>
 
-            <input type="checkbox" id="includeImage" name="include_image" checked>
+            <input type="checkbox" id="includeImage" name="include_image"> <!-- checked -->
             <label for="includeImage">Include image</label>
         </form>
         <div id="container"></div>
@@ -133,6 +133,9 @@
             }
             return result;
         }
+        
+        useAlertCheckbox.checked = JSON.parse(localStorage.getItem('useAlert')) || true;
+        includeImageCheckbox.checked = JSON.parse(localStorage.getItem('includeImage')) || true;
 
         useAlertCheckbox.addEventListener('change', function() { localStorage.setItem('useAlert', this.checked); });
         includeImageCheckbox.addEventListener('change', function() { localStorage.setItem('includeImage', this.checked); });
@@ -140,9 +143,7 @@
         document.getElementById('searchForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            let useAlert = JSON.parse(localStorage.getItem('useAlert')) || useAlertCheckbox.checked;
-            let includeImage = JSON.parse(localStorage.getItem('includeImage')) || includeImageCheckbox.checked;
-    
+            let includeImage = includeImageCheckbox.checked;
             let products, image, serialNumber = document.getElementById('serialNumber'), container = document.getElementById('container');
 
             let select = document.getElementById('selectSerialNumbers');
@@ -150,7 +151,7 @@
 
             if (selectedOptionValue) { serialNumber.value = selectedOptionValue.replace("**", generateRandomAlphaNumericString(2)); }
 
-            if (!(products = await findProductsBySerialNumber(serialNumber.value, useAlert))) { return; }
+            if (!(products = await findProductsBySerialNumber(serialNumber.value, useAlertCheckbox.checked))) { return; }
 
             for (let product of products) {
                 let attributes = product["attributes"];
